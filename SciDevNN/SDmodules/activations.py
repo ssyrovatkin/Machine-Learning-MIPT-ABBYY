@@ -9,19 +9,10 @@ class Softmax(Module):
         self.output = None
 
     def forward(self, x):
-        self.output = (torch.exp(x))/torch.sum(torch.exp(x), dim=1, keepdim=True)
-        return self.output
+        raise NotImplementedError
 
     def backward(self, x, grad_output):
-        local_derivative = torch.zeros((grad_output.shape[0], grad_output.shape[1], grad_output.shape[1]))
-        local_softmax = self.output
-
-        for i in range(grad_output.shape[0]):
-            local_derivative[i] = torch.diag(local_softmax[i])
-            local_derivative[i] -= local_softmax[i].view(-1, 1) @ local_softmax[i].view(-1, 1).T
-
-        self.grad_input = torch.matmul(grad_output[:, None, :], local_derivative)[:, 0, :]
-        return self.grad_input
+        raise NotImplementedError
 
     def get_grad_test(self):
         return self.grad_input
@@ -30,17 +21,12 @@ class Softmax(Module):
 class Sigmoid(Module):
     def __init__(self):
         super(Sigmoid, self).__init__()
-        self.grad_input = None
-        self.output = None
 
     def forward(self, x):
-        self.output = 1/(1+torch.exp(-x))
-        return self.output
+        raise NotImplementedError
 
     def backward(self, x, grad_output):
-        local = self.output*(1 - self.output)
-        self.grad_input = local * grad_output
-        return self.grad_input
+        raise NotImplementedError
 
     def get_grad_test(self):
         return self.grad_input
@@ -48,18 +34,15 @@ class Sigmoid(Module):
 
 class ReLU(Module):
     def forward(self, *args):
-        return torch.maximum(torch.FloatTensor(args), torch.FloatTensor(0))
+        raise NotImplementedError
 
     def backward(self, x, grad_output):
-        gradInput = torch.multiply(grad_output, x > 0)
-        return gradInput
+        raise NotImplementedError
 
 
 class Tanh(Module):
     def forward(self, *args):
-        args = torch.FloatTensor(args)
-        return (torch.exp(args)-torch.exp(-args))/(torch.exp(args)+torch.exp(-args))
+        raise NotImplementedError
 
     def backward(self, x, grad_output):
-        local = 4/(torch.exp(x)+torch.exp(-x))*(torch.exp(x)+torch.exp(-x))
-        return local * grad_output
+        raise NotImplementedError
