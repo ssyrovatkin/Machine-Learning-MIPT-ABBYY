@@ -13,6 +13,11 @@ class Linear(Module):
         self.output = None
         self.bias = bias
 
+        self.optimizer = optimizer
+
+        if self.optimizer is None:
+            raise Exception("Нет оптимизатора, передайте оптимизатор в модель")
+
         stdv = 1. / torch.sqrt(torch.tensor(in_features))
         if init is None:
             self.W = torch.randn(in_features, out_features).uniform_(-stdv, stdv)
@@ -51,10 +56,8 @@ class Linear(Module):
             self.gradb = torch.zeros_like(self.gradb)
 
     def apply_grad(self):
-        if self.bias:
-            return [self.gradW, self.gradb]
-        else:
-            return [self.gradW]
+        self.optimizer.step(self.W, self.gradW)
+        self.optimizer.step(self.b, self.gradb)
 
     def get_grad_test(self):
         return {'gradW': self.gradW.T,
