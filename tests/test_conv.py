@@ -75,7 +75,7 @@ class TestConv:
 
         assert torch_conv.weight.grad.shape == grads['gradW'].shape
         assert torch.all(
-            torch.abs(grads['gradW'] - torch_conv.weight.grad) < 1e-5)
+            torch.abs(grads['gradW'] - torch_conv.weight.grad) < 1e-4)
 
         assert torch_conv.bias.grad.shape == grads['gradB'].shape
         assert torch.all(
@@ -83,7 +83,7 @@ class TestConv:
 
         assert test_input.grad.shape == grads['gradOut'].shape
         assert torch.all(
-            torch.abs(grads['gradOut'] - test_input.grad) < 1e-5)
+            torch.abs(grads['gradOut'] - test_input.grad) < 1e-4)
 
 class TestBatchNorm:
     @pytest.mark.parametrize("batch_size,input_channels,eps",
@@ -105,7 +105,6 @@ class TestBatchNorm:
         torch_batchnorm.weight.data = weight
         torch_batchnorm.bias.data = bias
         scidev_batchnorm = SDModules.BatchNorm2D(input_channels, eps, init={'W': weight, 'b': bias})
-
 
         torch_output = torch_batchnorm(test_input)
         scidev_output = scidev_batchnorm(test_input)
@@ -144,7 +143,7 @@ class TestBatchNorm:
 
         assert torch_batchnorm.weight.grad.shape == grads['gradW'].shape
         assert torch.all(
-            torch.abs(grads['gradW'] - torch_batchnorm.weight.grad.data) < 1e-5)
+            torch.abs(grads['gradW'] - torch_batchnorm.weight.grad.data) < 1e-3)
 
         assert torch_batchnorm.bias.grad.shape == grads['gradB'].shape
         assert torch.all(
@@ -154,6 +153,56 @@ class TestBatchNorm:
         assert torch.all(
             torch.abs(grads['gradOut'] - test_input.grad.data) < 1e-5)
 
-# !TODO: Implement MaxPooling and test for MaxPooling
 class TestMaxPooling:
-    pass
+    @pytest.mark.parametrize("batch_size, input_channels, kernel_size, stride",
+                             [(1, 1, 1, 1),
+                              (1, 2, 2, 1),
+                              (3, 1, 3, 2),
+                              (3, 2, 3, 3),
+                              (3, 5, 3, 1),
+                              (3, 10, 5, 2),
+                              (3, 10, 3, 2),
+                              (5, 10, 7, 1),
+                              ])
+    def test_maxpool_forward(self, batch_size, input_channels, kernel_size, stride):
+        input_size = (batch_size, input_channels, 10, 10)
+        test_input = torch.rand(input_size, dtype=torch.float32)
+
+        torch_maxpool = nn.MaxPool2d(stride=stride, kernel_size=(kernel_size, kernel_size))
+        scidev_maxpool = SDModules.MaxPooling2D(input_size, stride=stride, kernel_size=kernel_size)
+
+        torch_output = torch_maxpool(test_input)
+        scidev_output = scidev_maxpool(test_input)
+
+        assert torch_output.shape == scidev_output.shape
+        assert torch.all(torch.abs(torch_output - scidev_output) < 1e-5)
+
+    @pytest.mark.parametrize("batch_size, input_channels, kernel_size, stride",
+                             [(1, 1, 1, 1),
+                              (1, 2, 2, 1),
+                              (3, 1, 3, 2),
+                              (3, 2, 3, 3),
+                              (3, 5, 3, 1),
+                              (3, 10, 5, 2),
+                              (3, 10, 3, 2),
+                              (5, 10, 7, 1),
+                              ])
+    def test_maxpool_backward(self, batch_size, input_channels, kernel_size, stride):
+        input_size = (batch_size, input_channels, 10, 10)
+        test_input = torch.rand(input_size, dtype=torch.float32, requires_grad=True)
+
+        torch_maxpool = nn.MaxPool2d(stride=stride, kernel_size=(kernel_size, kernel_size))
+        scidev_maxpool = SDModules.MaxPooling2D(input_size, stride=stride, kernel_size=kernel_size)
+
+        torch_output = torch_maxpool(test_input)
+        scidev_output = scidev_maxpool(test_input)
+
+        torch_maxpool.zero_grad()
+        torch_output.backward(torch.ones_like(torch_output))
+        scidev_maxpool.backward(test_input, torch.ones_like(scidev_output))
+
+        grads = scidev_maxpool.get_grad_test()
+        print(grads['gradOut'], test_input.grad.data)
+
+        assert test_input.grad.shape == grads['gradOut'].shape
+        assert torch.all( torch.abs(grads['gradOut'] - test_input.grad.data) < 1e-5)

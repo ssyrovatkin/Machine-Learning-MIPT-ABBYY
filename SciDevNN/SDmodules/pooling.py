@@ -1,6 +1,5 @@
 from SciDevNN.SDbase import Module
 
-
 class MaxPooling2D(Module):
     def __init__(self, input_size, hidden_size, init=None, optimizer=None):
         super(MaxPooling2D, self).__init__()
