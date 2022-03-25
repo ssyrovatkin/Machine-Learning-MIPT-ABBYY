@@ -3,7 +3,6 @@ import math
 from SciDevNN.SDbase import Module
 import copy
 
-
 class Linear(Module):
     def __init__(self, in_features, out_features, bias=True, init=None,
                  optimizer=None):
@@ -12,10 +11,12 @@ class Linear(Module):
         self.grad_input = None
         self.output = None
         self.bias = bias
+        self.input = None
 
-        self.optimizer = optimizer
+        self.optimizerW = copy.deepcopy(optimizer)
+        self.optimizerb = copy.deepcopy(optimizer)
 
-        if self.optimizer is None:
+        if self.optimizerW is None:
             raise Exception("Нет оптимизатора, передайте оптимизатор в модель")
 
         stdv = 1. / torch.sqrt(torch.tensor(in_features))
@@ -31,20 +32,22 @@ class Linear(Module):
             else:
                 self.b = init['b']
             self.gradb = torch.zeros_like(self.b)
+
         else:
             self.b = torch.zeros(out_features)
             self.gradb = torch.zeros_like(self.b)
 
     def forward(self, x):
+        self.input = x
 
         self.output = x @ self.W + self.b
 
         return self.output
 
-    def backward(self, x, grad_output):
+    def backward(self, grad_output):
         self.grad_input = grad_output @ self.W.T
 
-        self.gradW = x.T @ grad_output
+        self.gradW = self.input.T @ grad_output
         if self.bias:
             self.gradb = torch.sum(grad_output, dim=0)
 
@@ -56,8 +59,10 @@ class Linear(Module):
             self.gradb = torch.zeros_like(self.gradb)
 
     def apply_grad(self):
-        self.optimizer.step(self.W, self.gradW)
-        self.optimizer.step(self.b, self.gradb)
+        self.W = self.optimizerW.step(self.W, self.gradW)
+
+        if self.bias:
+            self.b = self.optimizerb.step(self.b, self.gradb)
 
     def get_grad_test(self):
         return {'gradW': self.gradW.T,

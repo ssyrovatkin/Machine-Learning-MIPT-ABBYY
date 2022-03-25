@@ -8,14 +8,18 @@ class Conv2D(Module):
     def __init__(self, in_channels, out_channels, kernel_size, stride, padding, init=None,
                  optimizer=None):
         if init is None:
-            stdv = 1. / torch.sqrt(in_channels)
+            stdv = 1. / math.sqrt(in_channels)
             self.W = torch.randn(out_channels, in_channels, kernel_size, kernel_size).uniform_(-stdv, stdv)
             self.b = torch.randn((out_channels,)).uniform_(-stdv, stdv)
         else:
             self.W = init['W']
             self.b = init['b']
 
-        self.optimizer = optimizer
+        self.optimizerW = copy.deepcopy(optimizer)
+        self.optimizerb = copy.deepcopy(optimizer)
+
+        if self.optimizerW is None:
+            raise Exception("Нет оптимизатора, передайте оптимизатор в модель")
 
         self.stride = stride
         self.padding = padding
@@ -80,9 +84,7 @@ class Conv2D(Module):
         self.gradb *= 0
 
     def apply_grad(self):
-        if self.optimizer is not None:
-            self.optimizer.step(self.W, self.dW)
-            self.optimizer.step(self.b, self.db)
-        else:
-            raise Exception("Нет оптимизатора, передайте оптимизатор в модель")
+        self.W = self.optimizerW.step(self.W, self.gradW)
+        self.b = self.optimizerb.step(self.b, self.gradb)
+
 

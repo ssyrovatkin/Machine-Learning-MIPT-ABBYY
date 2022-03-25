@@ -32,12 +32,14 @@ class Sigmoid(Module):
         super(Sigmoid, self).__init__()
         self.grad_input = None
         self.output = None
+        self.input = None
 
     def forward(self, x):
+        self.input = x
         self.output = 1/(1+torch.exp(-x))
         return self.output
 
-    def backward(self, x, grad_output):
+    def backward(self, grad_output):
         local = self.output*(1 - self.output)
         self.grad_input = local * grad_output
         return self.grad_input

@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
 from SciDevNN.SDbase import Module
 
-
 class Model(Module, ABC):
     def __init__(self, *args, loss=None, optimizer=None):
         super(Model, self).__init__()
@@ -14,5 +13,5 @@ class Model(Module, ABC):
         self.apply_grad()
         return loss
 
-    def train(self, data, n_epochs):
+    def zero_grad(self):
         raise NotImplementedError
