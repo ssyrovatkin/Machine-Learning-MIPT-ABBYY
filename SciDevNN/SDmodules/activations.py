@@ -54,12 +54,21 @@ class ReLU(Module):
         gradInput = torch.multiply(grad_output, x > 0)
         return gradInput
 
-
 class Tanh(Module):
-    def forward(self, *args):
-        args = torch.FloatTensor(args)
-        return (torch.exp(args)-torch.exp(-args))/(torch.exp(args)+torch.exp(-args))
+    def __init__(self):
+        super(Tanh, self).__init__()
+        self.grad_input = None
+        self.output = None
+
+    def forward(self, x):
+        x = torch.FloatTensor(x)
+        self.output = (torch.exp(x)-torch.exp(-x))/(torch.exp(x)+torch.exp(-x))
+        return self.output
 
     def backward(self, x, grad_output):
         local = 4/(torch.exp(x)+torch.exp(-x))*(torch.exp(x)+torch.exp(-x))
-        return local * grad_output
+        self.grad_input = local * grad_output
+        return self.grad_input
+
+    def get_grad_test(self):
+        return self.grad_input
