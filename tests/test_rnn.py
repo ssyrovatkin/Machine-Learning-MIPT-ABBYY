@@ -1,6 +1,3 @@
-import random
-import os
-
 import pytest
 import torch
 import torch.nn as nn
@@ -19,7 +16,7 @@ class TestTanh:
             input_t = torch.randn(input_shape, dtype=torch.float32,
                                   requires_grad=False).detach()
             torch_tanh = nn.Tanh()
-            scidev_tanh = SDModules.Sigmoid()
+            scidev_tanh = SDModules.Tanh()
 
             output_torch = torch_tanh(input_t)
             output_scidev = scidev_tanh(input_t)

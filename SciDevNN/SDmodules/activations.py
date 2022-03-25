@@ -1,7 +1,6 @@
 import torch
 from SciDevNN.SDbase import Module
 
-
 class Softmax(Module):
     def __init__(self):
         super(Softmax, self).__init__()
@@ -66,7 +65,7 @@ class Tanh(Module):
         return self.output
 
     def backward(self, x, grad_output):
-        local = 4/(torch.exp(x)+torch.exp(-x))*(torch.exp(x)+torch.exp(-x))
+        local = 4/((torch.exp(x)+torch.exp(-x))*(torch.exp(x)+torch.exp(-x)))
         self.grad_input = local * grad_output
         return self.grad_input
 
