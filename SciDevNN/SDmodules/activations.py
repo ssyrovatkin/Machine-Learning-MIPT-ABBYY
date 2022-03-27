@@ -65,7 +65,7 @@ class Tanh(Module):
         return self.output
 
     def backward(self, x, grad_output):
-        local = 4/((torch.exp(x)+torch.exp(-x))*(torch.exp(x)+torch.exp(-x)))
+        local = (1 - self.output**2)
         self.grad_input = local * grad_output
         return self.grad_input
 
