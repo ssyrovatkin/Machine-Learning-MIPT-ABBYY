@@ -1,0 +1,16 @@
+atomicwrites==1.4.0
+attrs==21.4.0
+colorama==0.4.4
+iniconfig==1.1.1
+numpy==1.22.1
+packaging==21.3
+Pillow==9.0.0
+pluggy==1.0.0
+py==1.11.0
+pyparsing==3.0.7
+pytest==6.2.5
+toml==0.10.2
+torch==1.10.2+cu102
+torchaudio==0.10.2+cu102
+torchvision==0.11.3+cu102
+typing-extensions==4.0.1
